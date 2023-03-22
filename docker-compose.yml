@@ -1,0 +1,20 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "8050:8050"
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=sqlite:///data/myapp.db
+    volumes:
+      - .:/app
+      - myapp-data:/data
+    command: ["gunicorn", "app:server", "-w", "4", "-b", "0.0.0.0:8050"]
+  db:
+    image: "sqlite"
+    volumes:
+      - myapp-data:/data
+    command: ["sqlite3", "/data/myapp.db"]
+volumes:
+  myapp-data:
