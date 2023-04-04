@@ -12,6 +12,57 @@ itsdangerous==2.1.2
 Jinja2==3.1.2
 MarkupSafe==2.1.2
 plotly==5.13.1
-tenacity==8.2.2
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
+
+public class StoredProcedureReader<T> {
+    private final String storedProcedureName;
+    private final List<SqlParameter> parameters;
+    private final ResultSetMapper<T> resultSetMapper;
+
+    public StoredProcedureReader(String storedProcedureName, List<SqlParameter> parameters, ResultSetMapper<T> resultSetMapper) {
+        this.storedProcedureName = storedProcedureName;
+        this.parameters = parameters;
+        this.resultSetMapper = resultSetMapper;
+    }
+
+    public List<T> execute(Connection connection) throws SQLException {
+        CallableStatement callableStatement = connection.prepareCall(storedProcedureName);
+
+        // Set input parameters
+        for (SqlParameter parameter : parameters) {
+            callableStatement.setObject(parameter.getIndex(), parameter.getValue());
+        }
+
+        // Register output parameter
+        callableStatement.registerOutParameter(parameters.size() + 1, Types.REF_CURSOR);
+
+        // Execute stored procedure
+        callableStatement.execute();
+
+        // Get result set
+        ResultSet resultSet = (ResultSet) callableStatement.getObject(parameters.size() + 1);
+
+        // Map result set to list of objects
+        List<T> result = new ArrayList<>();
+        while (resultSet.next()) {
+            T object = resultSetMapper.map(resultSet);
+            result.add(object);
+        }
+
+        // Close resources
+        resultSet.close();
+        callableStatement.close();
+
+        return result;
+    }
+}
 Werkzeug==2.2.3
 zipp==3.15.0
+
+
