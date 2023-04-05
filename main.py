@@ -3,6 +3,7 @@ from dash import html, dcc
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 from pages.page1 import page_3_layout
+from config import db_config
 
 # Define the app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
