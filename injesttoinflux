@@ -1,0 +1,18 @@
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
+import pandas as pd
+
+# Set up the connection to InfluxDB
+client = InfluxDBClient(url="http://localhost:8086", token="my-token", org="my-org")
+write_api = client.write_api(write_options=SYNCHRONOUS)
+
+# Load data into a Pandas DataFrame
+df = pd.read_csv('my_data.csv')
+
+# Write data to InfluxDB
+for index, row in df.iterrows():
+    point = Point("my_measurement") \
+        .tag("my_tag", row['tag_value']) \
+        .field("my_field", row['field_value']) \
+        .time(row['timestamp'])
+    write_api.write("my_bucket", "my-org", point)
